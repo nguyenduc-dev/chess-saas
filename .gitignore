@@ -1,0 +1,50 @@
+# ==========================================
+# 1. C++ CHESS ENGINE (engine-cpp)
+# ==========================================
+engine-cpp/build/
+engine-cpp/bin/
+engine-cpp/out/
+
+# Các file thực thi và nhị phân
+*.o
+*.obj
+*.exe
+*.dll
+*.so
+*.dylib
+*.out
+*.app
+engine-cpp/engine
+
+# Các file tạm của CMake
+CMakeCache.txt
+CMakeFiles/
+Makefile
+cmake_install.cmake
+compile_commands.json
+
+# ==========================================
+# 2. WEB SERVICES & NODE.JS (services)
+# ==========================================
+node_modules/
+npm-debug.log
+yarn-error.log
+yarn-debug.log
+.pnp.*
+
+# Môi trường và Biến bảo mật (CỰC KỲ QUAN TRỌNG)
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# ==========================================
+# 3. HỆ ĐIỀU HÀNH & IDE
+# ==========================================
+.vscode/
+.idea/
+*.swp
+*~
+.DS_Store
+Thumbs.db
