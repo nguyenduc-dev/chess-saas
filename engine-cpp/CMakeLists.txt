@@ -13,4 +13,5 @@ add_executable(engine
     src/bitutils.cpp
     src/evaluate.cpp
     src/search.cpp
+    src/uci.cpp
 )
