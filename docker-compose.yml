@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+    # 1. Cơ sở dữ liệu PostgreSQL
+    postgres-db:
+        image: postgres:15-alpine
+        container_name: novachess_postgres
+        restart: always
+        environment:
+            POSTGRES_USER: postgres
+            POSTGRES_PASSWORD: supersecretpassword # Bạn có thể đổi mật khẩu này
+            POSTGRES_DB: novachess_db
+        ports:
+            - '5432:5432' # Ánh xạ port 5432 của container ra máy thật của bạn
+        volumes:
+            - postgres_data:/var/lib/postgresql/data # Lưu trữ dữ liệu vĩnh viễn
+
+    # 2. Redis (Sẽ dùng cho Hàng chờ ghép trận sau này, giờ cứ bật sẵn)
+    redis-cache:
+        image: redis:7-alpine
+        container_name: novachess_redis
+        restart: always
+        ports:
+            - '6379:6379'
+        volumes:
+            - redis_data:/data
+
+# Khai báo Volumes để dữ liệu không bị mất khi tắt Docker
+volumes:
+    postgres_data:
+    redis_data:
