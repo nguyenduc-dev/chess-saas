@@ -1,0 +1,41 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// --- BẢNG NGƯỜI DÙNG ---
+model User {
+  id            String   @id @default(uuid())
+  username      String   @unique
+  email         String   @unique
+  passwordHash  String   
+  elo           Int      @default(1200) 
+  
+  matchesAsWhite Match[] @relation("WhitePlayer")
+  matchesAsBlack Match[] @relation("BlackPlayer")
+
+  createdAt     DateTime @default(now())
+}
+
+// --- BẢNG VÁN ĐẤU ---
+model Match {
+  id            String   @id @default(uuid())
+  
+  whitePlayerId String?
+  blackPlayerId String?
+  whitePlayer   User?    @relation("WhitePlayer", fields: [whitePlayerId], references: [id])
+  blackPlayer   User?    @relation("BlackPlayer", fields: [blackPlayerId], references: [id])
+
+  mode          String   @default("pvp") 
+  status        String   @default("ongoing") 
+  result        String?  
+  
+  moveHistory   String   
+  pgn           String?  
+
+  createdAt     DateTime @default(now())
+  endedAt       DateTime?
+}

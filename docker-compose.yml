@@ -1,31 +1,72 @@
 version: '3.8'
 
 services:
-    # 1. Cơ sở dữ liệu PostgreSQL
-    postgres-db:
-        image: postgres:15-alpine
-        container_name: novachess_postgres
-        restart: always
+    # 1. Database
+    postgres:
+        image: postgres:15
+        healthcheck:
+            test: ['CMD-SHELL', 'pg_isready -U user -d novachess_db']
+            interval: 5s
+            timeout: 5s
+            retries: 5
+        container_name: novachess_db
         environment:
-            POSTGRES_USER: postgres
-            POSTGRES_PASSWORD: supersecretpassword # Bạn có thể đổi mật khẩu này
+            POSTGRES_USER: user
+            POSTGRES_PASSWORD: password
             POSTGRES_DB: novachess_db
         ports:
-            - '5432:5432' # Ánh xạ port 5432 của container ra máy thật của bạn
-        volumes:
-            - postgres_data:/var/lib/postgresql/data # Lưu trữ dữ liệu vĩnh viễn
+            - '5432:5432'
 
-    # 2. Redis (Sẽ dùng cho Hàng chờ ghép trận sau này, giờ cứ bật sẵn)
-    redis-cache:
-        image: redis:7-alpine
-        container_name: novachess_redis
-        restart: always
+    # 2. Auth Service
+    auth-service:
+        build:
+            context: .
+            dockerfile: services/auth-service/Dockerfile
         ports:
-            - '6379:6379'
-        volumes:
-            - redis_data:/data
+            - '3003:3003'
+        environment:
+            DATABASE_URL: 'postgresql://user:password@postgres:5432/novachess_db'
+            JWT_SECRET: 'skdgbowhegowibgoiwoinwin'
+            JWT_EXPIRES_IN: 7d
+        depends_on:
+            postgres:
+                condition: service_healthy
 
-# Khai báo Volumes để dữ liệu không bị mất khi tắt Docker
-volumes:
-    postgres_data:
-    redis_data:
+    # 3. AI Service (Python)
+    ai-service:
+        build:
+            context: .
+            dockerfile: services/ai-service/Dockerfile
+        ports:
+            - '3002:3002'
+
+    # 4. Match Service
+    match-service:
+        build:
+            context: .
+            dockerfile: services/match-service/Dockerfile
+        ports:
+            - '3001:3001'
+        environment:
+            AI_SERVICE_URL: 'http://ai-service:3002'
+            DATABASE_URL: 'postgresql://user:password@postgres:5432/novachess_db'
+            JWT_SECRET: 'skdgbowhegowibgoiwoinwin'
+            JWT_EXPIRES_IN: 7d
+        depends_on:
+            - ai-service
+            - postgres
+
+    # 5. API Gateway
+    api-gateway:
+        build:
+            context: .
+            dockerfile: services/api-gateway/Dockerfile
+        ports:
+            - '3000:3000'
+        environment:
+            AUTH_SERVICE_URL: 'http://auth-service:3003'
+            AI_SERVICE_URL: 'http://ai-service:3002'
+            MATCH_SERVICE_URL: 'http://match-service:3001'
+        depends_on:
+            - auth-service
+            - match-service
